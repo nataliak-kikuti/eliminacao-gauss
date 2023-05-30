@@ -1,0 +1,16 @@
+
+
+body{
+  background-color: #8B0000;
+  color:#ffffff;
+}
+
+h1{
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  color:#ffffff;
+}
+.entrada{
+  display:block;
+}
