@@ -1,133 +1,149 @@
-function gauss() {
-  const matriz = parseMatriz('matriz');
-  const vector = parseVector('vector');
-  const tolerance = parseFloat(document.getElementById('tolerance').value);
-  const maxIterations = parseInt(document.getElementById('maxIterations').value);
+let ordemGauss = 0;
+let matrizGauss = [];
 
-  const n = matriz.length;
-  let x = new Array(n).fill(0);
-  let error = tolerance + 1;
-  let iterations = 0;
-
-  while (error > tolerance && iterations < maxIterations) {
-    let nextX = new Array(n);
-
-    for (let i = 0; i < n; i++) {
-      let sum = 0;
-
-      for (let j = 0; j < n; j++) {
-        if (j !== i) {
-          sum += matriz[i][j] * x[j];
+function criarMatrizGauss() {
+  // Obtém o valor da ordem da matriz
+    const entrada = document.getElementById("ordem-gauss");
+    ordemGauss = parseInt(entrada.value);
+  
+     // Obtém o elemento div onde as entradas da matriz serão criados
+    const matrizInputsDiv = document.getElementById("matrizInputsGauss");
+    matrizInputsDiv.innerHTML = "";
+  
+     // Cria os inputs para a matriz
+    for (let i = 0; i < ordemGauss; i++) {
+        for (let j = 0; j < ordemGauss + 1; j++) {
+            const input = document.createElement("input");
+            input.type = "number";
+            input.id = "input-" + i + "-" + j;
+            matrizInputsDiv.appendChild(input);
         }
-      }
-
-      nextX[i] = (vector[i] - sum) / matriz[i][i];
+        matrizInputsDiv.appendChild(document.createElement("br"));
     }
-
-    error = maxError(x, nextX);
-    x = nextX;
-    iterations++;
-  }
-
-  displayResults(x, error);
 }
 
-function parseMatriz(id) {
-  const textarea = document.getElementById(id);
-  const lines = textarea.value.trim().split('\n');
-
-  return lines.map(line => line.trim().split(/\s+/).map(Number));
-}
-
-function parseVector(id) {
-  const textarea = document.getElementById(id);
-  const values = textarea.value.trim().split(/\s+/).map(Number);
-
-  return values;
-}
-
-function maxError(x, nextX) {
-  const n = x.length;
-  let max = Math.abs(nextX[0] - x[0]);
-
-  for (let i = 1; i < n; i++) {
-    const error = Math.abs(nextX[i] - x[i]);
-    if (error > max) {
-      max = error;
+function calcularGauss() {
+    matrizGauss = [];
+  
+    // Obtém os valores da entrada e preenche a matriz
+    for (let i = 0; i < ordemGauss; i++) {
+        const linha = [];
+        for (let j = 0; j < ordemGauss + 1; j++) {
+            const input = document.getElementById("input-" + i + "-" + j);
+            linha.push(parseFloat(input.value));
+        }
+        matrizGauss.push(linha);
     }
-  }
+  
+     // Calcula a solução utilizando o método de Gauss
+    const solucao = gauss(matrizGauss);
 
-  return max;
+     // Exibe a solução na página
+    const resultadoGaussDiv = document.getElementById("resultadoGauss");
+    resultadoGaussDiv.innerHTML = "Solução: " + solucao;
 }
 
-function displayResults(solution, error) {
-  const solutionText = `Solução: [${solution.join(', ')}]`;
-  const errorText = `Erro: ${error}`;
-
-  document.getElementById('solution').textContent = solutionText;
-  document.getElementById('error').textContent = errorText;
+function gauss(matriz) {
+    const n = matriz.length;
+  
+    for (let i = 0; i < n; i++) {
+        let max = i;
+        for (let j = i + 1; j < n; j++) {
+            if (Math.abs(matriz[j][i]) > Math.abs(matriz[max][i])) {
+                max = j;
+            }
+        }
+  
+        [matriz[i], matriz[max]] = [matriz[max], matriz[i]];
+  
+        for (let k = i + 1; k < n; k++) {
+            const f = -matriz[k][i] / matriz[i][i];
+            for (let j = i + 1; j <= n; j++) {
+                matriz[k][j] += f * matriz[i][j];
+            }
+            matriz[k][i] = 0;
+        }
+    }
+  
+    const solucao = new Array(n);
+    for (let i = n - 1; i >= 0; i--) {
+        solucao[i] = matriz[i][n] / matriz[i][i];
+        for (let k = i - 1; k >= 0; k--) {
+            matriz[k][n] -= matriz[k][i] * solucao[i];
+        }
+    }
+  
+    return solucao;
 }
 
+let ordemGaussSeidel = 0;
+let matrizGaussSeidel = [];
 
+function criarMatrizGaussSeidel() {
+    const entrada = document.getElementById("ordem-gauss-seidel");
+    ordemGaussSeidel = parseInt(entrada.value);
+  
+    const matrizInputsDiv = document.getElementById("matrizInputsGaussSeidel");
+    matrizInputsDiv.innerHTML = "";
+  
+    for (let i = 0; i < ordemGaussSeidel; i++) {
+        for (let j = 0; j < ordemGaussSeidel + 1; j++) {
+            const input = document.createElement("input");
+            input.type = "number";
+            input.id = "input-gs-" + i + "-" + j;
+            matrizInputsDiv.appendChild(input);
+        }
+        matrizInputsDiv.appendChild(document.createElement("br"));
+    }
+}
 
 function calcularGaussSeidel() {
-  const matrixInput = document.getElementById('matrix').value;
-  const initialInput = document.getElementById('initial').value;
-  const toleranceInput = document.getElementById('tolerance').value;
-
-  const matrixRows = matrixInput.trim().split('\n');
-  const matrix = matrixRows.map(row => row.trim().split(' ').map(parseFloat));
-  const initial = initialInput.trim().split(' ').map(parseFloat);
-  const tolerance = parseFloat(toleranceInput);
-
-  const n = matrix.length;
-
-  let x = initial.slice(); // Create a copy of the initial values
-  let prevX = initial.slice();
-  let iterations = 0;
-
-  while (true) {
-      for (let i = 0; i < n; i++) {
-          let sum = 0;
-          for (let j = 0; j < n; j++) {
-              if (j !== i) {
-                  sum += matrix[i][j] * x[j];
-              }
-          }
-          x[i] = (1 / matrix[i][i]) * (matrix[i][n] - sum);
-      }
-
-      iterations++;
-
-      if (converged(x, prevX, tolerance) || iterations >= 1000) {
-          break;
-      }
-
-      prevX = x.slice();
-  }
-
-  displayOutput(x, iterations);
+    matrizGaussSeidel = [];
+  
+    for (let i = 0; i < ordemGaussSeidel; i++) {
+        const linha = [];
+        for (let j = 0; j < ordemGaussSeidel + 1; j++) {
+            const input = document.getElementById("input-gs-" + i + "-" + j);
+            linha.push(parseFloat(input.value));
+        }
+        matrizGaussSeidel.push(linha);
+    }
+  
+    const initialInput = document.getElementById("initial");
+    const toleranceInput = document.getElementById("tolerance");
+  
+    const initial = initialInput.value.trim().split(" ").map(parseFloat);
+    const tolerance = parseFloat(toleranceInput.value);
+  
+    const solucao = gaussSeidel(matrizGaussSeidel, initial, tolerance);
+  
+    const resultadoGaussSeidelDiv = document.getElementById("resultadoGaussSeidel");
+    resultadoGaussSeidelDiv.innerHTML = "Solução: " + solucao;
 }
 
-function converged(x, prevX, tolerance) {
-  for (let i = 0; i < x.length; i++) {
-      if (Math.abs(x[i] - prevX[i]) > tolerance) {
-          return false;
-      }
-  }
-  return true;
+function gaussSeidel(matriz, initial, tolerance) {
+    const n = matriz.length;
+    const x = initial.slice();
+    const prevX = initial.slice();
+  
+    let iterations = 0;
+    let error = tolerance + 1;
+  
+    while (error > tolerance && iterations < 1000) {
+        for (let i = 0; i < n; i++) {
+            let sum = 0;
+            for (let j = 0; j < n; j++) {
+                if (j !== i) {
+                    sum += matriz[i][j] * x[j];
+                }
+            }
+            x[i] = (1 / matriz[i][i]) * (matriz[i][n] - sum);
+        }
+  
+        error = Math.max(...x.map((value, index) => Math.abs(value - prevX[index])));
+        prevX.splice(0, prevX.length, ...x);
+        iterations++;
+    }
+  
+    return x;
 }
-
-function displayOutput(x, iterations) {
-  let output = `<h3>Resultado:</h3>`;
-  output += `<p>Número de iterações: ${iterations}</p>`;
-  output += `<p>Valores calculados:</p>`;
-  output += `<ul>`;
-  x.forEach((value, index) => {
-      output += `<li>x${index + 1} = ${value.toFixed(6)}</li>`;
-  });
-  output += `</ul>`;
-
-  document.getElementById('output').innerHTML = output;
-}
-
